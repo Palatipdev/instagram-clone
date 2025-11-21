@@ -12,9 +12,10 @@ import {
   Pressable,
   Animated,
   PanResponder,
+  TextInput,
 } from "react-native";
 
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 
 import { useState } from "react";
 // You can import supported modules from npm
@@ -111,6 +112,11 @@ export default function App() {
   const PostItem = ({ post }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    const [isLiked, setisLiked] = useState(false);
+    const [numLiked, setnumLiked] = useState(post.likes);
+    const [comments, setComments] = useState([]);
+    const [commentText, setCommentText] = useState("");
+
     return (
       <View style={styles.postFeeds}>
         <View style={styles.postHeader}>
@@ -174,7 +180,19 @@ export default function App() {
         {/* Hearts and stuff */}
         <View style={styles.postBottomBar}>
           <View style={styles.postBottomBarLeft}>
-            <Feather name="heart" size={27} color="black" />
+            <TouchableOpacity
+              onPress={() => {
+                setisLiked(!isLiked);
+                setnumLiked(isLiked ? numLiked - 1 : numLiked + 1);
+              }}
+            >
+              <Feather
+                name="heart"
+                size={27}
+                color={isLiked ? "red" : "black"}
+                style={{ fontWeight: isLiked ? "bold" : "normal" }}
+              />
+            </TouchableOpacity>
             <Feather name="message-circle" size={27} color="black" />
             <Ionicons name="paper-plane-outline" size={27} color="black" />
           </View>
@@ -186,11 +204,49 @@ export default function App() {
 
         {/* Post caption */}
         <View style={styles.postBottomText}>
-          <Text style={{ fontWeight: 600 }}>{post.likes} likes</Text>
+          <Text style={{ fontWeight: 600 }}>{numLiked} likes</Text>
           <Text numberOfLines={1} ellipsizeMode="tail">
             {post.caption}
           </Text>
           <Text style={{ color: "grey" }}> more </Text>
+        </View>
+
+        {comments.length > 0 && (
+          <View style={styles.commentsContainer}>
+            {comments.map((comment) => (
+              <View key={comment.id} style={styles.commentItem}>
+                <Text style={styles.commentUsername}>{comment.username}</Text>
+                <Text style={styles.commentText}>{comment.text}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={styles.commentInputContainer}>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="Add a comment..."
+            value={commentText}
+            onChangeText={setCommentText}
+          />
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={() => {
+              if (commentText.trim()) {
+                setComments([
+                  ...comments,
+                  {
+                    id: Date.now(),
+                    text: commentText,
+                    username: "you",
+                  },
+                ]);
+                setCommentText("");
+              }
+            }}
+          >
+            <Text style={styles.sendButtonText}>Send</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -637,5 +693,46 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     padding: 8,
     justifyContent: "space-between",
+  },
+
+  commentInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#efefef",
+  },
+  commentInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#dbdbdb",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    marginRight: 10,
+  },
+  sendButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+  },
+  sendButtonText: {
+    color: "#0095f6",
+    fontWeight: "600",
+  },
+  commentsContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+  },
+  commentItem: {
+    flexDirection: "row",
+    marginBottom: 5,
+  },
+  commentUsername: {
+    fontWeight: "600",
+    marginRight: 5,
+  },
+  commentText: {
+    flex: 1,
   },
 });
